@@ -1,0 +1,87 @@
+class Main {
+    function void main() {
+        var Grid grid;
+        var Pathfinder pathfinder;
+        var UI ui;
+        var MazeGenerator mazeGen;
+        var int mode;
+        var int inputResult;
+        var boolean pathFound;
+        var int pathLength, nodesExplored, pathCost;
+        var int startX, startY, goalX, goalY;
+        
+        let grid = Grid.new();
+        let pathfinder = Pathfinder.new(grid);
+        let ui = UI.new(grid);
+        let mazeGen = MazeGenerator.new(grid);
+        let mode = 0;
+        
+        do mazeGen.generateMaze();
+        
+        let startX = 1;
+        let startY = 1;
+        let goalX = 14;
+        let goalY = 6;
+        
+        do ui.drawGrid();
+        
+        do Output.moveCursor(20, 0);
+        do Output.printString("Press ENTER to solve maze, R to generate new maze");
+        
+        while (true) {
+            if (mode = 0) {
+                let inputResult = ui.handleInput();
+                
+                if (inputResult = 1) {
+                    let mode = 1;
+                    
+                    let pathFound = pathfinder.findPath(startX, startY, goalX, goalY);
+                    
+                    do ui.drawGrid();
+                    do ui.setPath(startX, startY, goalX, goalY);
+                    
+                    if (pathFound) {
+                        do ui.drawPath();
+                        
+                        let pathLength = pathfinder.getPathLength();
+                        let nodesExplored = pathfinder.getNodesExplored();
+                        let pathCost = pathfinder.getPathCost();
+                        
+                        do Output.moveCursor(20, 0);
+                        do Output.printString("Path found! Steps: ");
+                        do Output.printInt(pathLength);
+                        do Output.printString(" Explored: ");
+                        do Output.printInt(nodesExplored);
+                        do Output.printString(" Cost: ");
+                        do Output.printInt(pathCost / 10);
+                        do Output.printString("          ");
+                    } else {
+                        do Output.moveCursor(20, 0);
+                        do Output.printString("No path exists! Press R for new maze");
+                        do Output.printString("                    ");
+                    }
+                    
+                    while (Keyboard.keyPressed() = 0) { }
+                    while (~(Keyboard.keyPressed() = 0)) { }
+                    
+                    let mode = 0;
+                    do ui.drawGrid();
+                    do Output.moveCursor(20, 0);
+                    do Output.printString("Press ENTER to solve maze, R to generate new maze");
+                } else {
+                    if (inputResult = 2) {
+                        do mazeGen.generateMaze();
+                        do ui.drawGrid();
+                        do Output.moveCursor(20, 0);
+                        do Output.printString("New maze generated! Press ENTER to solve");
+                        do Output.printString("          ");
+                    }
+                }
+            }
+            
+            do Sys.wait(50);
+        }
+        
+        return;
+    }
+}

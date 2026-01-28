@@ -1,0 +1,186 @@
+class UI {
+    field Grid grid;
+    field int cursorX, cursorY;
+    field int startX, startY, goalX, goalY;
+    field boolean hasStart, hasGoal;
+    
+    constructor UI new(Grid gridRef) {
+        let grid = gridRef;
+        let cursorX = 0;
+        let cursorY = 0;
+        let startX = 0;
+        let startY = 0;
+        let goalX = 15;
+        let goalY = 7;
+        let hasStart = true;
+        let hasGoal = true;
+        return this;
+    }
+    
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+    
+    method int handleInput() {
+        var int key;
+        
+        let key = Keyboard.keyPressed();
+        
+        if (key = 0) { return 0; }
+        
+        if (key = 128) {
+            do waitForKeyRelease(key);
+            return 1;
+        }
+        
+        if (key = 82) {
+            do waitForKeyRelease(key);
+            return 2;
+        }
+        
+        return 0;
+    }
+    
+    method void waitForKeyRelease(int key) {
+        while (Keyboard.keyPressed() = key) { }
+        return;
+    }
+    
+    method void drawGrid() {
+        var int x, y, terrain;
+        
+        do Screen.clearScreen();
+        
+        let y = 0;
+        while (y < 8) {
+            let x = 0;
+            while (x < 16) {
+                let terrain = grid.getTerrain(x, y);
+                do drawCell(x, y, terrain);
+                let x = x + 1;
+            }
+            let y = y + 1;
+        }
+        
+        do drawMarker(startX, startY, true);
+        do drawMarker(goalX, goalY, false);
+        
+        return;
+    }
+    
+    method void drawCell(int x, int y, int terrain) {
+        var int sx, sy;
+        
+        let sx = x * 32;
+        let sy = y * 32;
+        
+        if (terrain = 0) {
+            do Screen.setColor(false);
+            do Screen.drawRectangle(sx, sy, sx + 31, sy + 31);
+        }
+        
+        if (terrain = 1) {
+            do Screen.setColor(true);
+            do Screen.drawRectangle(sx, sy, sx + 31, sy + 31);
+            do Screen.setColor(false);
+            do Screen.drawCircle(sx + 16, sy + 16, 5);
+        }
+        
+        if (terrain = 2) {
+            do Screen.setColor(true);
+            do Screen.drawRectangle(sx + 8, sy + 8, sx + 23, sy + 23);
+        }
+        
+        if (terrain = 3) {
+            do Screen.setColor(true);
+            do Screen.drawLine(sx, sy, sx + 31, sy);
+            do Screen.drawLine(sx, sy + 16, sx + 31, sy + 16);
+            do Screen.drawLine(sx, sy + 31, sx + 31, sy + 31);
+        }
+        
+        return;
+    }
+    
+    method void drawMarker(int x, int y, boolean isStart) {
+        var int sx, sy;
+        let sx = x * 32;
+        let sy = y * 32;
+        
+        do Screen.setColor(true);
+        if (isStart) {
+            do Screen.drawCircle(sx + 16, sy + 16, 8);
+        } else {
+            do Screen.drawRectangle(sx + 8, sy + 8, sx + 23, sy + 23);
+        }
+        
+        return;
+    }
+    
+    method void drawPath() {
+        var int current, x, y, nextX, nextY;
+        var int cx, cy, nextCx, nextCy;
+        var int px, py;
+        var Array pathX, pathY;
+        var int pathLength, i, j;
+        
+        let pathX = Array.new(128);
+        let pathY = Array.new(128);
+        let pathLength = 0;
+        
+        let current = grid.coordToIndex(goalX, goalY);
+        
+        while (~(current = grid.coordToIndex(startX, startY))) {
+            let pathX[pathLength] = grid.indexToX(current);
+            let pathY[pathLength] = grid.indexToY(current);
+            let pathLength = pathLength + 1;
+            let current = grid.getParent(current);
+            if (current = -1) { 
+                do pathX.dispose();
+                do pathY.dispose();
+                return; 
+            }
+        }
+        
+        let pathX[pathLength] = startX;
+        let pathY[pathLength] = startY;
+        let pathLength = pathLength + 1;
+        
+        // Draw the path with colored squares
+        let i = 0;
+        while (i < pathLength) {
+            let x = pathX[i];
+            let y = pathY[i];
+            let cx = (x * 32) + 16;
+            let cy = (y * 32) + 16;
+            
+            do Screen.setColor(true);
+            do Screen.drawRectangle(cx - 3, cy - 3, cx + 3, cy + 3);
+            do Screen.setColor(false);
+            do Screen.drawRectangle(cx - 2, cy - 2, cx + 2, cy + 2);
+            
+            let i = i + 1;
+        }
+        
+        do pathX.dispose();
+        do pathY.dispose();
+        return;
+    }
+    
+    method void setPath(int sx, int sy, int gx, int gy) {
+        let startX = sx;
+        let startY = sy;
+        let goalX = gx;
+        let goalY = gy;
+        return;
+    }
+    
+    method int getCursorX() { return cursorX; }
+    method int getCursorY() { return cursorY; }
+    method int getStartX() { return startX; }
+    method int getStartY() { return startY; }
+    method int getGoalX() { return goalX; }
+    method int getGoalY() { return goalY; }
+    method boolean hasStartPoint() { return hasStart; }
+    method boolean hasGoalPoint() { return hasGoal; }
+}

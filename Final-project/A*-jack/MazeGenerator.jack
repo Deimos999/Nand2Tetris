@@ -1,0 +1,133 @@
+class MazeGenerator {
+    field Grid grid;
+    field int seed;
+    
+    constructor MazeGenerator new(Grid gridRef) {
+        let grid = gridRef;
+        let seed = 7919;
+        return this;
+    }
+    
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+    
+    method int random(int max) {
+        let seed = seed + 1;
+        let seed = (seed * 31) + 17;
+        
+        if (seed < 0) {
+            let seed = -seed;
+        }
+        
+        while (seed > 10000) {
+            let seed = seed - 10000;
+        }
+        
+        return (seed - ((seed / max) * max));
+    }
+    method void generateMaze() {
+        var int x, y, i, attempts;
+        var boolean pathExists;
+        var Pathfinder pathfinder;
+
+        // Initialize the grid with walls
+        let x = 0;
+        while (x < 16) {
+            let y = 0;
+            while (y < 8) {
+                do grid.setTerrain(x, y, 1);
+                let y = y + 1;
+            }
+            let x = x + 1;
+        }
+
+        // Create solid edge walls
+        let x = 0;
+        while (x < 16) {
+            do grid.setTerrain(x, 0, 1);
+            do grid.setTerrain(x, 7, 1);
+            let x = x + 1;
+        }
+
+        let y = 0;
+        while (y < 8) {
+            do grid.setTerrain(0, y, 1);
+            do grid.setTerrain(15, y, 1);
+            let y = y + 1;
+        }
+
+        // Create initial walkable areas
+        let x = 1;
+        while (x < 15) {
+            let y = 1;
+            while (y < 7) {
+                do grid.setTerrain(x, y, 0);
+                let y = y + 1;
+            }
+            let x = x + 1;
+        }
+
+        // Add random obstacles with high probability for maximum randomness
+        let x = 1;
+        while (x < 15) {
+            let y = 1;
+            while (y < 7) {
+                if (random(100) < 72) {
+                    do grid.setTerrain(x, y, 1);
+                }
+                let y = y + 1;
+            }
+            let x = x + 1;
+        }
+
+        // Ensure source and destination are always walkable
+        do grid.setTerrain(1, 1, 0);
+        do grid.setTerrain(14, 6, 0);
+
+        // Validate and adjust if needed
+        let pathfinder = Pathfinder.new(grid);
+        let attempts = 0;
+
+        while (attempts < 30) {
+            let pathExists = pathfinder.findPath(1, 1, 14, 6);
+            
+            if (pathExists) {
+                do pathfinder.dispose();
+                return;
+            }
+
+            // Randomly remove obstacles to create path
+            let x = 1;
+            while (x < 15) {
+                let y = 1;
+                while (y < 7) {
+                    if (grid.getTerrain(x, y) = 1) {
+                        if (random(100) < 30) {
+                            do grid.setTerrain(x, y, 0);
+                        }
+                    }
+                    let y = y + 1;
+                }
+                let x = x + 1;
+            }
+
+            let attempts = attempts + 1;
+        }
+
+        do pathfinder.dispose();
+        return;
+    }
+    
+    method void setSeed(int newSeed) {
+        if ((newSeed > 0) & (newSeed < 10000)) {
+            let seed = newSeed;
+        }
+        return;
+    }
+    
+    method int getRandom(int max) {
+        return random(max);
+    }
+}

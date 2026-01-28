@@ -1,0 +1,84 @@
+// Alien.jack
+class Alien {
+    field int x, y;
+    field int size;
+
+    constructor Alien new(int Ax, int Ay) {
+        let x = Ax;
+        let y = Ay;
+        let size = 10;
+        do draw();
+        return this;
+    }
+
+    method void dispose() {
+        do erase();
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method void draw() {
+        do Screen.setColor(true);
+        // Draw alien shape - check that ALL drawing coordinates are valid
+        // x + size can't exceed 511, y + 10 can't exceed 254
+        if ((x > 0) & ((x + size) < 511) & (y > 0) & ((y + 10) < 254)) {
+            do Screen.drawRectangle(x + 2, y, x + size - 2, y + 3);
+            do Screen.drawRectangle(x, y + 3, x + size, y + 8);
+            do Screen.drawLine(x, y + 8, x, y + 10);
+            do Screen.drawLine(x + size, y + 8, x + size, y + 10);
+        }
+        return;
+    }
+
+    method void erase() {
+        do Screen.setColor(false);
+        // Erase with strict boundary checking
+        if ((x > 0) & ((x + size) < 511) & (y > 0) & ((y + 10) < 254)) {
+            do Screen.drawRectangle(x, y, x + size, y + 10);
+        }
+        return;
+    }
+
+    method void move(int direction) {
+        var int newX;
+        let newX = x + (direction * 3);
+        
+        // Check that new position AND new position + size are valid
+        if ((newX > 0) & ((newX + size) < 511)) {
+            do erase();
+            let x = newX;
+            do draw();
+        }
+        return;
+    }
+
+    method void moveDown() {
+        var int newY;
+        let newY = y + 10;
+        
+        // Check that new position AND new position + 10 are valid
+        if ((newY > 0) & ((newY + 10) < 254)) {
+            do erase();
+            let y = newY;
+            do draw();
+        }
+        return;
+    }
+
+    method boolean checkHit(int bx, int by) {
+        if ((bx > (x - 2)) & (bx < (x + size + 2))) {
+            if ((by > (y - 2)) & (by < (y + 10 + 2))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    method int getX() {
+        return x;
+    }
+
+    method int getY() {
+        return y;
+    }
+}

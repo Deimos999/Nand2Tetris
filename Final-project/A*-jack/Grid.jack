@@ -1,0 +1,144 @@
+class Grid {
+    field Array mapData;
+    field Array gCosts;
+    field Array parents;
+    field int width;
+    field int height;
+    field int totalCells;
+    
+    constructor Grid new() {
+        var int i;
+        
+        let width = 16;
+        let height = 8;
+        let totalCells = 128;
+        
+        let mapData = Array.new(totalCells);
+        let gCosts = Array.new(totalCells);
+        let parents = Array.new(totalCells);
+        
+        let i = 0;
+        while (i < totalCells) {
+            let mapData[i] = 0;
+            let gCosts[i] = 32767;
+            let parents[i] = -1;
+            let i = i + 1;
+        }
+        
+        return this;
+    }
+    
+    method void dispose() {
+        do mapData.dispose();
+        do gCosts.dispose();
+        do parents.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+    
+    method int coordToIndex(int x, int y) {
+        return (y * width) + x;
+    }
+    
+    method int indexToX(int index) {
+        return index - ((index / width) * width);
+    }
+    
+    method int indexToY(int index) {
+        return index / width;
+    }
+    
+    method boolean isValid(int x, int y) {
+        if (x < 0) { return false; }
+        if (x > 15) { return false; }
+        if (y < 0) { return false; }
+        if (y > 7) { return false; }
+        return true;
+    }
+    
+    method void setTerrain(int x, int y, int terrain) {
+        var int index;
+        if (isValid(x, y)) {
+            let index = coordToIndex(x, y);
+            let mapData[index] = terrain;
+        }
+        return;
+    }
+    
+    method int getTerrain(int x, int y) {
+        var int index;
+        if (~isValid(x, y)) {
+            return 2;
+        }
+        let index = coordToIndex(x, y);
+        return mapData[index];
+    }
+    
+    method int getTerrainByIndex(int index) {
+        return mapData[index];
+    }
+    
+    method boolean isWalkable(int x, int y) {
+        var int terrain;
+        let terrain = getTerrain(x, y);
+        return (terrain = 0);
+    }
+    
+    method int getMovementCost(int terrain) {
+        if (terrain = 0) { return 10; }
+        if (terrain = 1) { return 30; }
+        return 0;
+    }
+    
+    method void setGCost(int index, int cost) {
+        let gCosts[index] = cost;
+        return;
+    }
+    
+    method int getGCost(int index) {
+        return gCosts[index];
+    }
+    
+    method int getFCost(int index, int hCost) {
+        return gCosts[index] + hCost;
+    }
+    
+    method void setParent(int index, int parentIndex) {
+        let parents[index] = parentIndex;
+        return;
+    }
+    
+    method int getParent(int index) {
+        return parents[index];
+    }
+    
+    method void resetPathfinding() {
+        var int i;
+        let i = 0;
+        while (i < totalCells) {
+            let gCosts[i] = 32767;
+            let parents[i] = -1;
+            let i = i + 1;
+        }
+        return;
+    }
+    
+    method void clear() {
+        var int i;
+        let i = 0;
+        while (i < totalCells) {
+            let mapData[i] = 0;
+            let i = i + 1;
+        }
+        do resetPathfinding();
+        return;
+    }
+    
+    method int getWidth() {
+        return width;
+    }
+    
+    method int getHeight() {
+        return height;
+    }
+}

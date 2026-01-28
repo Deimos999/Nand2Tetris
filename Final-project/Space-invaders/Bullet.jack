@@ -1,0 +1,63 @@
+// Bullet.jack
+class Bullet {
+    field int x, y;
+    field int speed;
+
+    constructor Bullet new(int Ax, int Ay) {
+        let x = Ax;
+        let y = Ay;
+        let speed = 8;
+        do draw();
+        return this;
+    }
+
+    method void dispose() {
+        do erase();
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method void draw() {
+        do Screen.setColor(true);
+        // Boundary check: x+2 and y+5 must be valid
+        if ((x > 0) & ((x + 2) < 511) & (y > 0) & ((y + 5) < 254)) {
+            do Screen.drawRectangle(x, y, x + 2, y + 5);
+        }
+        return;
+    }
+
+    method void erase() {
+        do Screen.setColor(false);
+        // Boundary check for erase
+        if ((x > 0) & ((x + 2) < 511) & (y > 0) & ((y + 5) < 254)) {
+            do Screen.drawRectangle(x, y, x + 2, y + 5);
+        }
+        return;
+    }
+
+    method void move() {
+        do erase();
+        let y = y - speed;
+        do draw();
+        return;
+    }
+
+    method void moveDown() {
+        do erase();
+        let y = y + speed;
+        do draw();
+        return;
+    }
+
+    method boolean isOffScreen() {
+        return y < 10;
+    }
+
+    method int getX() {
+        return x;
+    }
+
+    method int getY() {
+        return y;
+    }
+}

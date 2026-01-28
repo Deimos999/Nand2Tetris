@@ -1,0 +1,160 @@
+class Pathfinder {
+    field Grid grid;
+    field MinHeap openSet;
+    field int startX, startY, goalX, goalY;
+    field int startIndex, goalIndex;
+    field boolean pathFound;
+    field Array visited;
+    
+    constructor Pathfinder new(Grid gridRef) {
+        let grid = gridRef;
+        let openSet = MinHeap.new(64);
+        let pathFound = false;
+        let visited = Array.new(128);
+        return this;
+    }
+    
+    method void dispose() {
+        do visited.dispose();
+        do openSet.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+    
+    method int manhattanDistance(int x1, int y1, int x2, int y2) {
+        var int dx, dy;
+        let dx = x1 - x2;
+        let dy = y1 - y2;
+        
+        if (dx < 0) { let dx = -dx; }
+        if (dy < 0) { let dy = -dy; }
+        
+        return (dx + dy) * 10;
+    }
+    
+    method boolean findPath(int sx, int sy, int gx, int gy) {
+        var int currentIndex, currentX, currentY, currentG;
+        var int hCost, fCost;
+        var int i;
+        
+        let startX = sx;
+        let startY = sy;
+        let goalX = gx;
+        let goalY = gy;
+        let startIndex = grid.coordToIndex(sx, sy);
+        let goalIndex = grid.coordToIndex(gx, gy);
+        
+        do grid.resetPathfinding();
+        do openSet.clear();
+        let pathFound = false;
+        
+        let i = 0;
+        while (i < 128) {
+            let visited[i] = 0;
+            let i = i + 1;
+        }
+        
+        if (~grid.isWalkable(sx, sy)) { return false; }
+        if (~grid.isWalkable(gx, gy)) { return false; }
+        
+        do grid.setGCost(startIndex, 0);
+        let hCost = manhattanDistance(sx, sy, gx, gy);
+        let fCost = hCost;
+        do openSet.insert(startIndex, fCost);
+        
+        while (~openSet.isEmpty()) {
+            let currentIndex = openSet.extractMin();
+            
+            if (visited[currentIndex] = 0) {
+                let visited[currentIndex] = 1;
+                
+                if (currentIndex = goalIndex) {
+                    let pathFound = true;
+                    return true;
+                }
+                
+                let currentX = grid.indexToX(currentIndex);
+                let currentY = grid.indexToY(currentIndex);
+                let currentG = grid.getGCost(currentIndex);
+                
+                do processNeighbor(currentIndex, currentX, currentY - 1, currentG);
+                do processNeighbor(currentIndex, currentX, currentY + 1, currentG);
+                do processNeighbor(currentIndex, currentX - 1, currentY, currentG);
+                do processNeighbor(currentIndex, currentX + 1, currentY, currentG);
+            }
+        }
+        
+        return false;
+    }
+    
+    method void processNeighbor(int currentIndex, int nx, int ny, int currentG) {
+        var int neighborIndex, terrain, moveCost, tentativeG;
+        var int hCost, fCost;
+        
+        if (~grid.isValid(nx, ny)) { return; }
+        if (~grid.isWalkable(nx, ny)) { return; }
+        
+        let neighborIndex = grid.coordToIndex(nx, ny);
+        
+        if (visited[neighborIndex] = 1) { return; }
+        
+        let terrain = grid.getTerrain(nx, ny);
+        let moveCost = grid.getMovementCost(terrain);
+        let tentativeG = currentG + moveCost;
+        
+        if (tentativeG < grid.getGCost(neighborIndex)) {
+            do grid.setGCost(neighborIndex, tentativeG);
+            do grid.setParent(neighborIndex, currentIndex);
+            let hCost = manhattanDistance(nx, ny, goalX, goalY);
+            let fCost = grid.getFCost(neighborIndex, hCost);
+            do openSet.insert(neighborIndex, fCost);
+        }
+        
+        return;
+    }
+    
+    method boolean isPathFound() {
+        return pathFound;
+    }
+    
+    method int getPathLength() {
+        var int length, current;
+        
+        if (~pathFound) { return 0; }
+        
+        let length = 0;
+        let current = goalIndex;
+        
+        while (~(current = startIndex)) {
+            let length = length + 1;
+            let current = grid.getParent(current);
+            if (current = -1) { return 0; }
+        }
+        
+        return length;
+    }
+    
+    method int getNodesExplored() {
+        var int count, i;
+        let count = 0;
+        let i = 0;
+        
+        while (i < 128) {
+            if (visited[i] = 1) {
+                let count = count + 1;
+            }
+            let i = i + 1;
+        }
+        
+        return count;
+    }
+    
+    method int getPathCost() {
+        if (~pathFound) { return 0; }
+        return grid.getGCost(goalIndex);
+    }
+    
+    method boolean validatePath(int startX, int startY, int goalX, int goalY) {
+        return findPath(startX, startY, goalX, goalY);
+    }
+}

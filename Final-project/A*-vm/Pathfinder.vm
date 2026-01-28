@@ -1,0 +1,456 @@
+function Pathfinder.new 0
+push constant 10
+call Memory.alloc 1
+pop pointer 0
+push argument 0
+pop this 0
+push constant 64
+call MinHeap.new 1
+pop this 1
+push constant 0
+pop this 8
+push constant 128
+call Array.new 1
+pop this 9
+push pointer 0
+return
+function Pathfinder.dispose 0
+push argument 0
+pop pointer 0
+push this 9
+call Array.dispose 1
+pop temp 0
+push this 1
+call MinHeap.dispose 1
+pop temp 0
+push pointer 0
+call Memory.deAlloc 1
+pop temp 0
+push constant 0
+return
+function Pathfinder.manhattanDistance 2
+push argument 0
+pop pointer 0
+push argument 1
+push argument 3
+sub
+pop local 0
+push argument 2
+push argument 4
+sub
+pop local 1
+push local 0
+push constant 0
+lt
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push local 0
+neg
+pop local 0
+label IF_FALSE0
+push local 1
+push constant 0
+lt
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push local 1
+neg
+pop local 1
+label IF_FALSE1
+push local 0
+push local 1
+add
+push constant 10
+call Math.multiply 2
+return
+function Pathfinder.findPath 7
+push argument 0
+pop pointer 0
+push argument 1
+pop this 2
+push argument 2
+pop this 3
+push argument 3
+pop this 4
+push argument 4
+pop this 5
+push this 0
+push argument 1
+push argument 2
+call Grid.coordToIndex 3
+pop this 6
+push this 0
+push argument 3
+push argument 4
+call Grid.coordToIndex 3
+pop this 7
+push this 0
+call Grid.resetPathfinding 1
+pop temp 0
+push this 1
+call MinHeap.clear 1
+pop temp 0
+push constant 0
+pop this 8
+push constant 0
+pop local 6
+label WHILE_EXP0
+push local 6
+push constant 128
+lt
+not
+if-goto WHILE_END0
+push local 6
+push this 9
+add
+push constant 0
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push local 6
+push constant 1
+add
+pop local 6
+goto WHILE_EXP0
+label WHILE_END0
+push this 0
+push argument 1
+push argument 2
+call Grid.isWalkable 3
+not
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push constant 0
+return
+label IF_FALSE0
+push this 0
+push argument 3
+push argument 4
+call Grid.isWalkable 3
+not
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push constant 0
+return
+label IF_FALSE1
+push this 0
+push this 6
+push constant 0
+call Grid.setGCost 3
+pop temp 0
+push pointer 0
+push argument 1
+push argument 2
+push argument 3
+push argument 4
+call Pathfinder.manhattanDistance 5
+pop local 4
+push local 4
+pop local 5
+push this 1
+push this 6
+push local 5
+call MinHeap.insert 3
+pop temp 0
+label WHILE_EXP1
+push this 1
+call MinHeap.isEmpty 1
+not
+not
+if-goto WHILE_END1
+push this 1
+call MinHeap.extractMin 1
+pop local 0
+push local 0
+push this 9
+add
+pop pointer 1
+push that 0
+push constant 0
+eq
+if-goto IF_TRUE2
+goto IF_FALSE2
+label IF_TRUE2
+push local 0
+push this 9
+add
+push constant 1
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push local 0
+push this 7
+eq
+if-goto IF_TRUE3
+goto IF_FALSE3
+label IF_TRUE3
+push constant 0
+not
+pop this 8
+push constant 0
+not
+return
+label IF_FALSE3
+push this 0
+push local 0
+call Grid.indexToX 2
+pop local 1
+push this 0
+push local 0
+call Grid.indexToY 2
+pop local 2
+push this 0
+push local 0
+call Grid.getGCost 2
+pop local 3
+push pointer 0
+push local 0
+push local 1
+push local 2
+push constant 1
+sub
+push local 3
+call Pathfinder.processNeighbor 5
+pop temp 0
+push pointer 0
+push local 0
+push local 1
+push local 2
+push constant 1
+add
+push local 3
+call Pathfinder.processNeighbor 5
+pop temp 0
+push pointer 0
+push local 0
+push local 1
+push constant 1
+sub
+push local 2
+push local 3
+call Pathfinder.processNeighbor 5
+pop temp 0
+push pointer 0
+push local 0
+push local 1
+push constant 1
+add
+push local 2
+push local 3
+call Pathfinder.processNeighbor 5
+pop temp 0
+label IF_FALSE2
+goto WHILE_EXP1
+label WHILE_END1
+push constant 0
+return
+function Pathfinder.processNeighbor 6
+push argument 0
+pop pointer 0
+push this 0
+push argument 2
+push argument 3
+call Grid.isValid 3
+not
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push constant 0
+return
+label IF_FALSE0
+push this 0
+push argument 2
+push argument 3
+call Grid.isWalkable 3
+not
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push constant 0
+return
+label IF_FALSE1
+push this 0
+push argument 2
+push argument 3
+call Grid.coordToIndex 3
+pop local 0
+push local 0
+push this 9
+add
+pop pointer 1
+push that 0
+push constant 1
+eq
+if-goto IF_TRUE2
+goto IF_FALSE2
+label IF_TRUE2
+push constant 0
+return
+label IF_FALSE2
+push this 0
+push argument 2
+push argument 3
+call Grid.getTerrain 3
+pop local 1
+push this 0
+push local 1
+call Grid.getMovementCost 2
+pop local 2
+push argument 4
+push local 2
+add
+pop local 3
+push local 3
+push this 0
+push local 0
+call Grid.getGCost 2
+lt
+if-goto IF_TRUE3
+goto IF_FALSE3
+label IF_TRUE3
+push this 0
+push local 0
+push local 3
+call Grid.setGCost 3
+pop temp 0
+push this 0
+push local 0
+push argument 1
+call Grid.setParent 3
+pop temp 0
+push pointer 0
+push argument 2
+push argument 3
+push this 4
+push this 5
+call Pathfinder.manhattanDistance 5
+pop local 4
+push this 0
+push local 0
+push local 4
+call Grid.getFCost 3
+pop local 5
+push this 1
+push local 0
+push local 5
+call MinHeap.insert 3
+pop temp 0
+label IF_FALSE3
+push constant 0
+return
+function Pathfinder.isPathFound 0
+push argument 0
+pop pointer 0
+push this 8
+return
+function Pathfinder.getPathLength 2
+push argument 0
+pop pointer 0
+push this 8
+not
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push constant 0
+return
+label IF_FALSE0
+push constant 0
+pop local 0
+push this 7
+pop local 1
+label WHILE_EXP0
+push local 1
+push this 6
+eq
+not
+not
+if-goto WHILE_END0
+push local 0
+push constant 1
+add
+pop local 0
+push this 0
+push local 1
+call Grid.getParent 2
+pop local 1
+push local 1
+push constant 1
+neg
+eq
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push constant 0
+return
+label IF_FALSE1
+goto WHILE_EXP0
+label WHILE_END0
+push local 0
+return
+function Pathfinder.getNodesExplored 2
+push argument 0
+pop pointer 0
+push constant 0
+pop local 0
+push constant 0
+pop local 1
+label WHILE_EXP0
+push local 1
+push constant 128
+lt
+not
+if-goto WHILE_END0
+push local 1
+push this 9
+add
+pop pointer 1
+push that 0
+push constant 1
+eq
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push local 0
+push constant 1
+add
+pop local 0
+label IF_FALSE0
+push local 1
+push constant 1
+add
+pop local 1
+goto WHILE_EXP0
+label WHILE_END0
+push local 0
+return
+function Pathfinder.getPathCost 0
+push argument 0
+pop pointer 0
+push this 8
+not
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push constant 0
+return
+label IF_FALSE0
+push this 0
+push this 7
+call Grid.getGCost 2
+return
+function Pathfinder.validatePath 0
+push argument 0
+pop pointer 0
+push pointer 0
+push argument 1
+push argument 2
+push argument 3
+push argument 4
+call Pathfinder.findPath 5
+return

@@ -1,0 +1,10 @@
+// Main.jack
+class Main {
+    function void main() {
+        var SpaceInvaders game;
+        let game = SpaceInvaders.new();
+        do game.run();
+        do game.dispose();
+        return;
+    }
+}

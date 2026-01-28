@@ -1,0 +1,114 @@
+class MinHeap {
+    field Array heapIndices;
+    field Array heapFCosts;
+    field int size;
+    field int capacity;
+    
+    constructor MinHeap new(int maxCapacity) {
+        let capacity = maxCapacity;
+        let size = 0;
+        let heapIndices = Array.new(maxCapacity);
+        let heapFCosts = Array.new(maxCapacity);
+        return this;
+    }
+    
+    method void dispose() {
+        do heapIndices.dispose();
+        do heapFCosts.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+    
+    method void insert(int gridIndex, int fCost) {
+        var int currentPos, parentPos, tempIndex, tempCost;
+        
+        if (size = capacity) {
+            return;
+        }
+        
+        let heapIndices[size] = gridIndex;
+        let heapFCosts[size] = fCost;
+        let currentPos = size;
+        let size = size + 1;
+        
+        while (currentPos > 0) {
+            let parentPos = (currentPos - 1) / 2;
+            
+            if (~(heapFCosts[currentPos] < heapFCosts[parentPos])) {
+                return;
+            }
+            
+            let tempIndex = heapIndices[currentPos];
+            let tempCost = heapFCosts[currentPos];
+            let heapIndices[currentPos] = heapIndices[parentPos];
+            let heapFCosts[currentPos] = heapFCosts[parentPos];
+            let heapIndices[parentPos] = tempIndex;
+            let heapFCosts[parentPos] = tempCost;
+            
+            let currentPos = parentPos;
+        }
+        
+        return;
+    }
+    
+    method int extractMin() {
+        var int result, currentPos, leftChild, rightChild, smallest;
+        var int tempIndex, tempCost;
+        
+        if (size = 0) {
+            return -1;
+        }
+        
+        let result = heapIndices[0];
+        let size = size - 1;
+        let heapIndices[0] = heapIndices[size];
+        let heapFCosts[0] = heapFCosts[size];
+        let currentPos = 0;
+        
+        while (true) {
+            let leftChild = (2 * currentPos) + 1;
+            let rightChild = (2 * currentPos) + 2;
+            let smallest = currentPos;
+            
+            if (leftChild < size) {
+                if (heapFCosts[leftChild] < heapFCosts[smallest]) {
+                    let smallest = leftChild;
+                }
+            }
+            
+            if (rightChild < size) {
+                if (heapFCosts[rightChild] < heapFCosts[smallest]) {
+                    let smallest = rightChild;
+                }
+            }
+            
+            if (smallest = currentPos) {
+                return result;
+            }
+            
+            let tempIndex = heapIndices[currentPos];
+            let tempCost = heapFCosts[currentPos];
+            let heapIndices[currentPos] = heapIndices[smallest];
+            let heapFCosts[currentPos] = heapFCosts[smallest];
+            let heapIndices[smallest] = tempIndex;
+            let heapFCosts[smallest] = tempCost;
+            
+            let currentPos = smallest;
+        }
+        
+        return result;
+    }
+    
+    method boolean isEmpty() {
+        return size = 0;
+    }
+    
+    method int getSize() {
+        return size;
+    }
+    
+    method void clear() {
+        let size = 0;
+        return;
+    }
+}

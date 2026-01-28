@@ -1,0 +1,530 @@
+// SpaceInvaders.jack
+class SpaceInvaders {
+    field Ship player;
+    field Array aliens;
+    field Array bullets;
+    field Array alienBullets;
+    field int alienCount;
+    field int bulletCount;
+    field int alienBulletCount;
+    field int score;
+    field int alienDir;
+    field int moveCounter;
+    field int shootCounter;
+    field int moveSpeed;
+    field boolean gameOver;
+    field int level;
+    field int powerUpType;
+    field int powerUpTimer;
+
+    constructor SpaceInvaders new() {
+        let level = 1;
+        let score = 0;
+        let gameOver = false;
+        let powerUpType = 0;
+        let powerUpTimer = 0;
+        do initLevel();
+        return this;
+    }
+
+    method void initLevel() {
+        var int i, x, y, randX, randY;
+        var Alien a;
+        
+        if (level = 1) {
+            let player = Ship.new(240, 220);
+        }
+        
+        let aliens = Array.new(15);
+        let bullets = Array.new(5);
+        let alienBullets = Array.new(10);
+        let alienCount = 15;
+        let bulletCount = 0;
+        let alienBulletCount = 0;
+        let alienDir = 1;
+        let moveCounter = 0;
+        let shootCounter = 0;
+        
+        // Speed increases dramatically with each level
+        if (level = 1) {
+            let moveSpeed = 5;
+        }
+        if (level = 2) {
+            let moveSpeed = 3;
+        }
+        if (level = 3) {
+            let moveSpeed = 2;
+        }
+
+        // Create aliens with random positions
+        let i = 0;
+        while (i < 15) {
+            let randX = 30 + ((i * 47) - ((i / 10) * 470));
+            let randY = 20 + ((i * 13) - ((i / 8) * 104));
+            let x = randX;
+            let y = randY;
+            let a = Alien.new(x, y);
+            let aliens[i] = a;
+            let i = i + 1;
+        }
+
+        let i = 0;
+        while (i < 5) {
+            let bullets[i] = 0;
+            let i = i + 1;
+        }
+        
+        let i = 0;
+        while (i < 10) {
+            let alienBullets[i] = 0;
+            let i = i + 1;
+        }
+
+        return;
+    }
+
+    method void dispose() {
+        var int i;
+        var Alien a;
+        var Bullet b;
+        do player.dispose();
+        let i = 0;
+        while (i < 15) {
+            let a = aliens[i];
+            if (~(a = 0)) {
+                do a.dispose();
+            }
+            let i = i + 1;
+        }
+        do aliens.dispose();
+        let i = 0;
+        while (i < 5) {
+            let b = bullets[i];
+            if (~(b = 0)) {
+                do b.dispose();
+            }
+            let i = i + 1;
+        }
+        do bullets.dispose();
+        let i = 0;
+        while (i < 10) {
+            let b = alienBullets[i];
+            if (~(b = 0)) {
+                do b.dispose();
+            }
+            let i = i + 1;
+        }
+        do alienBullets.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method void run() {
+        var char key;
+        var boolean exit;
+        let exit = false;
+
+        do drawUI();
+
+        while (~exit & ~gameOver) {
+            let key = Keyboard.keyPressed();
+
+            if (key = 81) { let exit = true; }        // q key
+            if (key = 130) { do player.moveLeft(); }  // left arrow
+            if (key = 132) { do player.moveRight(); } // right arrow
+            if (key = 32) { do shoot(); }             // space
+
+            do moveAliens();
+            do aliensShoot();
+            do moveBullets();
+            do moveAlienBullets();
+            do checkCollisions();
+            do updatePowerUp();
+            do Sys.wait(30);
+            
+            // Check if level complete
+            if ((alienCount = 0) & (level < 3)) {
+                do nextLevel();
+            }
+            if ((alienCount = 0) & (level = 3)) {
+                let gameOver = true;
+            }
+        }
+
+        if (gameOver) {
+            do showGameOver();
+        }
+
+        return;
+    }
+
+    method void drawUI() {
+        do Screen.clearScreen();
+        do Output.moveCursor(0, 0);
+        do Output.printString("Level: ");
+        do Output.printInt(level);
+        do Output.printString("  Score: ");
+        do Output.printInt(score);
+        if (powerUpType = 1) {
+            do Output.printString("  [RAPID FIRE]");
+        }
+        if (powerUpType = 2) {
+            do Output.printString("  [SHIELD]");
+        }
+        do player.draw();
+        do drawAliens();
+        return;
+    }
+
+    method void drawAliens() {
+        var int i;
+        var Alien a;
+        let i = 0;
+        while (i < 15) {
+            let a = aliens[i];
+            if (~(a = 0)) {
+                do a.draw();
+            }
+            let i = i + 1;
+        }
+        return;
+    }
+
+    method void shoot() {
+        var int i;
+        var Bullet b;
+        
+        let i = 0;
+        while (i < 5) {
+            let b = bullets[i];
+            if (b = 0) {
+                let b = Bullet.new(player.getX() + 5, player.getY());
+                let bullets[i] = b;
+                let bulletCount = bulletCount + 1;
+                return;
+            }
+            let i = i + 1;
+        }
+        return;
+    }
+
+    method void aliensShoot() {
+        var int i, shooterIndex;
+        var Alien a;
+        var Bullet b;
+        
+        let shootCounter = shootCounter + 1;
+        
+        // Aliens shoot more frequently based on level
+        if ((level = 1) & (shootCounter < 40)) {
+            return;
+        }
+        if ((level = 2) & (shootCounter < 30)) {
+            return;
+        }
+        if ((level = 3) & (shootCounter < 20)) {
+            return;
+        }
+        
+        let shootCounter = 0;
+        
+        // Find a random alien to shoot
+        let shooterIndex = (score + level) - (((score + level) / 15) * 15);
+        let i = 0;
+        while (i < 15) {
+            let a = aliens[shooterIndex];
+            if (~(a = 0)) {
+                // Create alien bullet
+                let i = 0;
+                while (i < 10) {
+                    let b = alienBullets[i];
+                    if (b = 0) {
+                        let b = Bullet.new(a.getX() + 5, a.getY() + 10);
+                        let alienBullets[i] = b;
+                        let alienBulletCount = alienBulletCount + 1;
+                        return;
+                    }
+                    let i = i + 1;
+                }
+                return;
+            }
+            let shooterIndex = shooterIndex + 1;
+            if (shooterIndex > 14) {
+                let shooterIndex = 0;
+            }
+            let i = i + 1;
+        }
+        return;
+    }
+
+    method void moveBullets() {
+        var int i;
+        var Bullet b;
+        
+        let i = 0;
+        while (i < 5) {
+            let b = bullets[i];
+            if (~(b = 0)) {
+                do b.move();
+                if (b.isOffScreen()) {
+                    do b.dispose();
+                    let bullets[i] = 0;
+                    let bulletCount = bulletCount - 1;
+                }
+            }
+            let i = i + 1;
+        }
+        return;
+    }
+
+    method void moveAlienBullets() {
+        var int i;
+        var Bullet b;
+        
+        let i = 0;
+        while (i < 10) {
+            let b = alienBullets[i];
+            if (~(b = 0)) {
+                do b.moveDown();
+                if (b.getY() > 250) {
+                    do b.dispose();
+                    let alienBullets[i] = 0;
+                    let alienBulletCount = alienBulletCount - 1;
+                }
+            }
+            let i = i + 1;
+        }
+        return;
+    }
+
+    method void moveAliens() {
+        var int i;
+        var Alien a;
+        var boolean shouldMoveDown;
+        var int alienX;
+        var int nextX;
+        
+        let moveCounter = moveCounter + 1;
+        if (moveCounter < moveSpeed) {
+            return;
+        }
+        let moveCounter = 0;
+        let shouldMoveDown = false;
+
+        // Check if any alien WILL hit the edge AFTER next move
+        let i = 0;
+        while (i < 15) {
+            let a = aliens[i];
+            if (~(a = 0)) {
+                let alienX = a.getX();
+                let nextX = alienX + (alienDir * 3);
+                // Check if next move will exceed boundaries
+                // Right edge check (alien is 10 pixels wide, screen is 512 wide)
+                if ((alienDir = 1) & (nextX > 490)) {
+                    let shouldMoveDown = true;
+                }
+                // Left edge check
+                if ((alienDir = -1) & (nextX < 10)) {
+                    let shouldMoveDown = true;
+                }
+            }
+            let i = i + 1;
+        }
+
+        if (shouldMoveDown) {
+            // Reverse direction
+            let alienDir = -alienDir;
+            // Move all aliens down
+            let i = 0;
+            while (i < 15) {
+                let a = aliens[i];
+                if (~(a = 0)) {
+                    do a.moveDown();
+                    // Check if alien reached player level (y > 200) - Game Over
+                    if (a.getY() > 200) {
+                        let gameOver = true;
+                    }
+                }
+                let i = i + 1;
+            }
+        } else {
+            // Move aliens horizontally
+            let i = 0;
+            while (i < 15) {
+                let a = aliens[i];
+                if (~(a = 0)) {
+                    do a.move(alienDir);
+                }
+                let i = i + 1;
+            }
+        }
+        return;
+    }
+
+    method void checkCollisions() {
+        var int i, j;
+        var Bullet b;
+        var Alien a;
+        
+        // Check player bullets hitting aliens
+        let i = 0;
+        while (i < 5) {
+            let b = bullets[i];
+            if (~(b = 0)) {
+                let j = 0;
+                while (j < 15) {
+                    let a = aliens[j];
+                    if (~(a = 0)) {
+                        if (a.checkHit(b.getX(), b.getY())) {
+                            do a.dispose();
+                            let aliens[j] = 0;
+                            do b.dispose();
+                            let bullets[i] = 0;
+                            let bulletCount = bulletCount - 1;
+                            let alienCount = alienCount - 1;
+                            let score = score + (10 * level);
+                            
+                            // Random power-up chance (every 50 points)
+                            if ((score - ((score / 50) * 50)) = 0) {
+                                do activatePowerUp();
+                            }
+                            
+                            do updateScore();
+                        }
+                    }
+                    let j = j + 1;
+                }
+            }
+            let i = i + 1;
+        }
+        
+        // Check alien bullets hitting player - instant game over
+        let i = 0;
+        while (i < 10) {
+            let b = alienBullets[i];
+            if (~(b = 0)) {
+                if (player.checkHit(b.getX(), b.getY())) {
+                    if (~(powerUpType = 2)) {
+                        let gameOver = true;
+                    } else {
+                        do b.dispose();
+                        let alienBullets[i] = 0;
+                        let alienBulletCount = alienBulletCount - 1;
+                    }
+                }
+            }
+            let i = i + 1;
+        }
+        
+        return;
+    }
+
+    method void activatePowerUp() {
+        // Randomly choose power-up type
+        let powerUpType = ((score / 10) - (((score / 10) / 2) * 2)) + 1;
+        let powerUpTimer = 200;
+        return;
+    }
+
+    method void updatePowerUp() {
+        if (powerUpTimer > 0) {
+            let powerUpTimer = powerUpTimer - 1;
+            if (powerUpTimer = 0) {
+                let powerUpType = 0;
+                do updateScore();
+            }
+        }
+        return;
+    }
+
+    method void updateScore() {
+        do Output.moveCursor(0, 0);
+        do Output.printString("Level: ");
+        do Output.printInt(level);
+        do Output.printString("  Score: ");
+        do Output.printInt(score);
+        do Output.printString("             ");
+        do Output.moveCursor(0, 35);
+        if (powerUpType = 1) {
+            do Output.printString("[RAPID FIRE]");
+        }
+        if (powerUpType = 2) {
+            do Output.printString("[SHIELD]    ");
+        }
+        if (powerUpType = 0) {
+            do Output.printString("            ");
+        }
+        return;
+    }
+
+    method void nextLevel() {
+        var int i;
+        var Bullet b;
+        
+        // Clear remaining bullets
+        let i = 0;
+        while (i < 5) {
+            let b = bullets[i];
+            if (~(b = 0)) {
+                do b.dispose();
+                let bullets[i] = 0;
+            }
+            let i = i + 1;
+        }
+        do bullets.dispose();
+        
+        let i = 0;
+        while (i < 10) {
+            let b = alienBullets[i];
+            if (~(b = 0)) {
+                do b.dispose();
+                let alienBullets[i] = 0;
+            }
+            let i = i + 1;
+        }
+        do alienBullets.dispose();
+        
+        do aliens.dispose();
+        
+        let level = level + 1;
+        let bulletCount = 0;
+        let alienBulletCount = 0;
+        do showLevelComplete();
+        do initLevel();
+        do drawUI();
+        return;
+    }
+
+    method void showLevelComplete() {
+        do Screen.clearScreen();
+        do Output.moveCursor(10, 22);
+        do Output.printString("LEVEL ");
+        do Output.printInt(level - 1);
+        do Output.printString(" COMPLETE!");
+        do Output.moveCursor(12, 20);
+        do Output.printString("Get ready for Level ");
+        do Output.printInt(level);
+        do Output.printString("!");
+        do Sys.wait(2000);
+        return;
+    }
+
+    method void showGameOver() {
+        do Screen.clearScreen();
+        do Output.moveCursor(10, 24);
+        if ((alienCount = 0) & (level = 3)) {
+            do Output.printString("YOU WIN!");
+            do Output.moveCursor(11, 20);
+            do Output.printString("All 3 Levels Complete!");
+        } else {
+            do Output.printString("GAME OVER!");
+        }
+        do Output.moveCursor(13, 21);
+        do Output.printString("Final Score: ");
+        do Output.printInt(score);
+        do Output.moveCursor(14, 21);
+        do Output.printString("Level Reached: ");
+        do Output.printInt(level);
+        return;
+    }
+}

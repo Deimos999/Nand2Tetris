@@ -1,0 +1,356 @@
+function MazeGenerator.new 0
+push constant 2
+call Memory.alloc 1
+pop pointer 0
+push argument 0
+pop this 0
+push constant 7919
+pop this 1
+push pointer 0
+return
+function MazeGenerator.dispose 0
+push argument 0
+pop pointer 0
+push pointer 0
+call Memory.deAlloc 1
+pop temp 0
+push constant 0
+return
+function MazeGenerator.random 0
+push argument 0
+pop pointer 0
+push this 1
+push constant 1
+add
+pop this 1
+push this 1
+push constant 31
+call Math.multiply 2
+push constant 17
+add
+pop this 1
+push this 1
+push constant 0
+lt
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push this 1
+neg
+pop this 1
+label IF_FALSE0
+label WHILE_EXP0
+push this 1
+push constant 10000
+gt
+not
+if-goto WHILE_END0
+push this 1
+push constant 10000
+sub
+pop this 1
+goto WHILE_EXP0
+label WHILE_END0
+push this 1
+push this 1
+push argument 1
+call Math.divide 2
+push argument 1
+call Math.multiply 2
+sub
+return
+function MazeGenerator.generateMaze 6
+push argument 0
+pop pointer 0
+push constant 0
+pop local 0
+label WHILE_EXP0
+push local 0
+push constant 16
+lt
+not
+if-goto WHILE_END0
+push constant 0
+pop local 1
+label WHILE_EXP1
+push local 1
+push constant 8
+lt
+not
+if-goto WHILE_END1
+push this 0
+push local 0
+push local 1
+push constant 1
+call Grid.setTerrain 4
+pop temp 0
+push local 1
+push constant 1
+add
+pop local 1
+goto WHILE_EXP1
+label WHILE_END1
+push local 0
+push constant 1
+add
+pop local 0
+goto WHILE_EXP0
+label WHILE_END0
+push constant 0
+pop local 0
+label WHILE_EXP2
+push local 0
+push constant 16
+lt
+not
+if-goto WHILE_END2
+push this 0
+push local 0
+push constant 0
+push constant 1
+call Grid.setTerrain 4
+pop temp 0
+push this 0
+push local 0
+push constant 7
+push constant 1
+call Grid.setTerrain 4
+pop temp 0
+push local 0
+push constant 1
+add
+pop local 0
+goto WHILE_EXP2
+label WHILE_END2
+push constant 0
+pop local 1
+label WHILE_EXP3
+push local 1
+push constant 8
+lt
+not
+if-goto WHILE_END3
+push this 0
+push constant 0
+push local 1
+push constant 1
+call Grid.setTerrain 4
+pop temp 0
+push this 0
+push constant 15
+push local 1
+push constant 1
+call Grid.setTerrain 4
+pop temp 0
+push local 1
+push constant 1
+add
+pop local 1
+goto WHILE_EXP3
+label WHILE_END3
+push constant 1
+pop local 0
+label WHILE_EXP4
+push local 0
+push constant 15
+lt
+not
+if-goto WHILE_END4
+push constant 1
+pop local 1
+label WHILE_EXP5
+push local 1
+push constant 7
+lt
+not
+if-goto WHILE_END5
+push this 0
+push local 0
+push local 1
+push constant 0
+call Grid.setTerrain 4
+pop temp 0
+push local 1
+push constant 1
+add
+pop local 1
+goto WHILE_EXP5
+label WHILE_END5
+push local 0
+push constant 1
+add
+pop local 0
+goto WHILE_EXP4
+label WHILE_END4
+push constant 1
+pop local 0
+label WHILE_EXP6
+push local 0
+push constant 15
+lt
+not
+if-goto WHILE_END6
+push constant 1
+pop local 1
+label WHILE_EXP7
+push local 1
+push constant 7
+lt
+not
+if-goto WHILE_END7
+push pointer 0
+push constant 100
+call MazeGenerator.random 2
+push constant 72
+lt
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push this 0
+push local 0
+push local 1
+push constant 1
+call Grid.setTerrain 4
+pop temp 0
+label IF_FALSE0
+push local 1
+push constant 1
+add
+pop local 1
+goto WHILE_EXP7
+label WHILE_END7
+push local 0
+push constant 1
+add
+pop local 0
+goto WHILE_EXP6
+label WHILE_END6
+push this 0
+push constant 1
+push constant 1
+push constant 0
+call Grid.setTerrain 4
+pop temp 0
+push this 0
+push constant 14
+push constant 6
+push constant 0
+call Grid.setTerrain 4
+pop temp 0
+push this 0
+call Pathfinder.new 1
+pop local 5
+push constant 0
+pop local 3
+label WHILE_EXP8
+push local 3
+push constant 30
+lt
+not
+if-goto WHILE_END8
+push local 5
+push constant 1
+push constant 1
+push constant 14
+push constant 6
+call Pathfinder.findPath 5
+pop local 4
+push local 4
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push local 5
+call Pathfinder.dispose 1
+pop temp 0
+push constant 0
+return
+label IF_FALSE1
+push constant 1
+pop local 0
+label WHILE_EXP9
+push local 0
+push constant 15
+lt
+not
+if-goto WHILE_END9
+push constant 1
+pop local 1
+label WHILE_EXP10
+push local 1
+push constant 7
+lt
+not
+if-goto WHILE_END10
+push this 0
+push local 0
+push local 1
+call Grid.getTerrain 3
+push constant 1
+eq
+if-goto IF_TRUE2
+goto IF_FALSE2
+label IF_TRUE2
+push pointer 0
+push constant 100
+call MazeGenerator.random 2
+push constant 30
+lt
+if-goto IF_TRUE3
+goto IF_FALSE3
+label IF_TRUE3
+push this 0
+push local 0
+push local 1
+push constant 0
+call Grid.setTerrain 4
+pop temp 0
+label IF_FALSE3
+label IF_FALSE2
+push local 1
+push constant 1
+add
+pop local 1
+goto WHILE_EXP10
+label WHILE_END10
+push local 0
+push constant 1
+add
+pop local 0
+goto WHILE_EXP9
+label WHILE_END9
+push local 3
+push constant 1
+add
+pop local 3
+goto WHILE_EXP8
+label WHILE_END8
+push local 5
+call Pathfinder.dispose 1
+pop temp 0
+push constant 0
+return
+function MazeGenerator.setSeed 0
+push argument 0
+pop pointer 0
+push argument 1
+push constant 0
+gt
+push argument 1
+push constant 10000
+lt
+and
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push argument 1
+pop this 1
+label IF_FALSE0
+push constant 0
+return
+function MazeGenerator.getRandom 0
+push argument 0
+pop pointer 0
+push pointer 0
+push argument 1
+call MazeGenerator.random 2
+return

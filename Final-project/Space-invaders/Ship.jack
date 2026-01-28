@@ -1,0 +1,68 @@
+// Ship.jack
+class Ship {
+    field int x, y;
+    field int size;
+
+    constructor Ship new(int Ax, int Ay) {
+        let x = Ax;
+        let y = Ay;
+        let size = 12;
+        return this;
+    }
+
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method void draw() {
+        do Screen.setColor(true);
+        // Draw simple ship shape
+        do Screen.drawRectangle(x, y, x + size, y + 8);
+        do Screen.drawLine(x + (size / 2) - 2, y - 4, x + (size / 2) + 2, y - 4);
+        do Screen.drawLine(x + (size / 2) - 2, y - 4, x + (size / 2), y);
+        do Screen.drawLine(x + (size / 2) + 2, y - 4, x + (size / 2), y);
+        return;
+    }
+
+    method void erase() {
+        do Screen.setColor(false);
+        do Screen.drawRectangle(x, y - 4, x + size, y + 8);
+        return;
+    }
+
+    method void moveLeft() {
+        if (x > 5) {
+            do erase();
+            let x = x - 5;
+            do draw();
+        }
+        return;
+    }
+
+    method void moveRight() {
+        if (x < 495) {
+            do erase();
+            let x = x + 5;
+            do draw();
+        }
+        return;
+    }
+
+    method boolean checkHit(int bx, int by) {
+        if ((bx > (x - 2)) & (bx < (x + size + 2))) {
+            if ((by > (y - 6)) & (by < (y + 10))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    method int getX() {
+        return x;
+    }
+
+    method int getY() {
+        return y;
+    }
+}
